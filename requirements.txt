@@ -1,0 +1,7 @@
+django==1.11
+django-mogi
+mysqlclient
+celery>=4
+redis
+djangorestframework
+requests
