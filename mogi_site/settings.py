@@ -11,8 +11,23 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 from kombu import Exchange, Queue
 import os
+import re
 # secret stuff (not for github!!!)
 from .settings_secret import  *
+
+
+def is_docker():
+    # https://stackoverflow.com/questions/43878953/how-does-one-detect-if-one-is-running-within-a-docker-container-within-python
+    path = "/proc/" + str(os.getpid()) + "/cgroup"
+    if not os.path.isfile(path):
+        return False
+
+    with open(path) as f:
+        for line in f:
+            if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
+                return True
+        return False
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,8 +37,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Run Environment
 # can be either local (for tomnl), CaStLeS (birmingham university VM system of docker container
-RUN_ENVIRONMENT = 'docker'
+user_name = 'tomnl'
 
+docker_flag = is_docker()
+
+if docker_flag:
+    RUN_ENVIRONMENT = 'docker'
+elif os.path.exists(os.path.join('/home', user_name)):
+    RUN_ENVIRONMENT = 'local'
+else:
+    RUN_ENVIRONMENT = 'castles'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -41,22 +64,20 @@ if RUN_ENVIRONMENT == 'castles':
     # if galaxy is accessible on the same storage drive as the django instance
     GALAXY_ROOT_PATH = '/rds/bear-apps/handbuilt/software/galaxy/viantm-dev'
 elif RUN_ENVIRONMENT == 'local':
-    MEDIA_ROOT = '/home/tomnl/dma/'
-    MEDIA_URL = '/home/tomnl/dma/'
-    edr_pth = '/home/tomnl/data/'
+    MEDIA_ROOT = os.path.join('/home', user_name, 'media')
+    MEDIA_URL = os.path.join('/home', user_name, 'media/')
+    edr_pth = os.path.join('/home', user_name, 'data')
     METAB_PUBCHEM_SQLITE_PTH = '/home/tomnl/Dropbox/pubchem_small_testing.db'
     # if galaxy is accessible on the same storage drive as the django instance
-    GALAXY_ROOT_PATH = '/home/tomnl/galaxy_storage/'
+    GALAXY_ROOT_PATH = os.path.join('home', user_name, 'galaxy_storage')
 elif RUN_ENVIRONMENT == 'docker':
-    MEDIA_ROOT = '/home/tomnl/dma/'
-    MEDIA_URL = '/home/tomnl/dma/'
-    edr_pth = '/home/tomnl/data/'
-    METAB_PUBCHEM_SQLITE_PTH = '/home/tomnl/Dropbox/pubchem_small_testing.db'
-    # if galaxy is accessible on the same storage drive as the django instance
-    GALAXY_ROOT_PATH = '/home/tomnl/galaxy_storage/'
+    MEDIA_ROOT = os.path.join('/home', user_name, 'media')
+    MEDIA_URL = os.path.join('/home', user_name, 'media/')
+    edr_pth = os.path.join('/home', user_name, 'data')
+    # METAB_PUBCHEM_SQLITE_PTH = ''
+    # Only available if Galaxy is accessible on the same storage drive as the django instance
+    # GALAXY_ROOT_PATH = os.path.join('home', user_name, 'galaxy_storage')
 
-
-# MEDIA_ROOT_GFILES = '/home/tomnl'
 
 
 
