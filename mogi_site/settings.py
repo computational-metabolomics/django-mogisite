@@ -96,7 +96,11 @@ EXCEL_SUPPORT = 'xlwt' # or 'openpyxl' or 'pyexcelerator'
 
 REDIS_PORT = 6379
 REDIS_DB = 0
-REDIS_HOST = os.environ.get('REDIS_PORT_6379_TCP_ADDR', 'redis')
+
+if docker_flag:
+    REDIS_HOST = os.environ.get('REDIS_PORT_6379_TCP_ADDR', 'redis')
+else:
+    REDIS_HOST = '127.0.0.1'
 
 RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'rabbit')
 
@@ -106,11 +110,11 @@ if RABBIT_HOSTNAME.startswith('tcp://'):
 BROKER_URL = os.environ.get('BROKER_URL',
                             '')
 if not BROKER_URL:
-    BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
+    BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}'.format(
         user=os.environ.get('RABBIT_ENV_USER', 'admin'),
         password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'mypass'),
-        hostname=RABBIT_HOSTNAME,
-        vhost=os.environ.get('RABBIT_ENV_VHOST', ''))
+        hostname=RABBIT_HOSTNAME if docker_flag else '127.0.0.1',
+        vhost=os.environ.get('RABBIT_ENV_VHOST', 'myvhost'))
 
 # We don't want to have dead connections stored on rabbitmq, so we have to negotiate using heartbeats
 BROKER_HEARTBEAT = '?heartbeat=60'
@@ -145,9 +149,10 @@ CELERY_TASK_RESULT_EXPIRES = 600
 CELERY_RESULT_BACKEND = 'redis://%s:%d/%d' % (REDIS_HOST, REDIS_PORT, REDIS_DB)
 CELERY_REDIS_MAX_CONNECTIONS = 1
 
-# Don't use pickle as serializer, json is much safer
+# Don't use pickle as serializer, json is much safer (but
+# CELERY_TASK_SERIALIZER = "pickle"
 CELERY_TASK_SERIALIZER = "json"
-CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_ACCEPT_CONTENT = ['pickle', 'application/json']
 
 CELERYD_HIJACK_ROOT_LOGGER = False
 CELERYD_PREFETCH_MULTIPLIER = 1
@@ -174,7 +179,7 @@ INSTALLED_APPS = [
     'dal_select2',
     'django_tables2',
     'rest_framework',
-    'django_celery_results',
+    # 'django_celery_results',
     'django_filters',
     'bootstrap3',
     'django_sb_admin',

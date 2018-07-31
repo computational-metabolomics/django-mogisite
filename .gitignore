@@ -2,6 +2,7 @@
 mogi_site/settings_secret.py
 *.pyc
 
+celerybeat*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
