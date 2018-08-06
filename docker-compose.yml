@@ -5,7 +5,9 @@ version: '3.6'
 # https://docs.docker.com/compose/django/#create-a-django-project
 # http://blog.thoward37.me/articles/where-are-docker-images-stored/
 # https://blog.syncano.io/configuring-running-django-celery-docker-containers-pt-1/
-services:  
+# https://github.com/docker/compose/issues/1049
+# docker-compose rm --all &&   docker-compose pull &&  docker-compose build --no-cache &&  docker-compose up  --force-recreate
+services:
 
   # django database storage
   db:
@@ -23,6 +25,7 @@ services:
   redis:
     image: redis:2.8.19
     hostname: redis
+
 
   # RabbitMQ (messaging broker)
   rabbit:
@@ -51,6 +54,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+   # image: tomnl/django-mogisite
 
   # Celery worker
   worker:
@@ -69,3 +73,4 @@ services:
       - db
       - web
       - redis
+    #image: tomnl/celery-mogi

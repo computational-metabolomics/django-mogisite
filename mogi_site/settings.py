@@ -107,19 +107,18 @@ RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'rabbit')
 if RABBIT_HOSTNAME.startswith('tcp://'):
     RABBIT_HOSTNAME = RABBIT_HOSTNAME.split('//')[1]
 
-BROKER_URL = os.environ.get('BROKER_URL',
-                            '')
+BROKER_URL = os.environ.get('BROKER_URL','')
 if not BROKER_URL:
     BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}'.format(
-        user=os.environ.get('RABBIT_ENV_USER', 'admin'),
-        password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'mypass'),
+        user='admin', # os.environ.get('RABBIT_ENV_USER', 'admin') if docker_flag else 'admin',
+        password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'mypass') if docker_flag else 'admin',
         hostname=RABBIT_HOSTNAME if docker_flag else '127.0.0.1',
-        vhost=os.environ.get('RABBIT_ENV_VHOST', 'myvhost'))
+        vhost=os.environ.get('RABBIT_ENV_VHOST', '')) if docker_flag else 'myvhost'
 
 # We don't want to have dead connections stored on rabbitmq, so we have to negotiate using heartbeats
-BROKER_HEARTBEAT = '?heartbeat=60'
-if not BROKER_URL.endswith(BROKER_HEARTBEAT):
-    BROKER_URL += BROKER_HEARTBEAT
+#BROKER_HEARTBEAT = '?heartbeat=60'
+#if not BROKER_URL.endswith(BROKER_HEARTBEAT):
+#    BROKER_URL += BROKER_HEARTBEAT
 
 BROKER_POOL_LIMIT = 1
 BROKER_CONNECTION_TIMEOUT = 10
@@ -179,7 +178,7 @@ INSTALLED_APPS = [
     'dal_select2',
     'django_tables2',
     'rest_framework',
-    # 'django_celery_results',
+    'django_celery_results',
     'django_filters',
     'bootstrap3',
     'django_sb_admin',
