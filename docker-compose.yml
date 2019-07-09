@@ -1,16 +1,7 @@
-version: '3.6'
-# Useful docs
-# https://github.com/vishnubob/wait-for-it
-# https://docs.docker.com/compose/startup-order/
-# https://docs.docker.com/compose/django/#create-a-django-project
-# http://blog.thoward37.me/articles/where-are-docker-images-stored/
-# https://blog.syncano.io/configuring-running-django-celery-docker-containers-pt-1/
-# https://github.com/docker/compose/issues/1049
-# docker-compose rm --all &&   docker-compose pull &&  docker-compose build --no-cache &&  docker-compose up  --force-recreate
+version: '3'
 services:
 
-  # django database storage
-  db:
+  mysql-db:
     image: mysql:5.6
     restart: always
     environment:
@@ -20,57 +11,54 @@ services:
       - MYSQL_PASSWORD=docker
     ports:
       - "3302:3306"
-
-  # Redis (results backend)
-  redis:
-    image: redis:2.8.19
-    hostname: redis
-
-
-  # RabbitMQ (messaging broker)
-  rabbit:
-    hostname: rabbit
-    image: rabbitmq:3-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=mypass
-    ports:
-      - "5672:5672"  # we forward this port because it's useful for debugging
-      - "15672:15672"  # here, we can access rabbitmq management plugin
-    links:
-      - db
+    networks:
+      - mogi
 
 
   # Django web server
-  web:
+  django-web:
     build:
       context: .
       dockerfile: Dockerfile
-    hostname: web
+    hostname: docker-web
     volumes:
       - .:/code
-    command: "./wait-for-it.sh -h db -p 3302 -- ./run_web.sh"
+    command: "./wait-for-it.sh -h mysql-db -p 3306  -- su -m myuser -c './run_web.sh'"
     ports:
       - "8000:8000"
     depends_on:
-      - db
-   # image: tomnl/django-mogisite
+      - mysql-db
+    networks:
+      - mogi
 
   # Celery worker
-  worker:
+  celery-worker:
     build:
       context: .
       dockerfile: Dockerfile
-    command: "./wait-for-it.sh -h rabbit -p 15672 -- ./run_celery.sh"
+    command: "./wait-for-it.sh -h django-rabbitmq -p 15672 -- su -m myuser -c 'celery worker -A mogi_site.celery -l info  --concurrency 20'"
     volumes:
       - .:/code
-    links:
-      - db
-      - rabbit
-      - redis
     depends_on:
-      - rabbit
-      - db
-      - web
-      - redis
-    #image: tomnl/celery-mogi
+      - mysql-db
+      - django-web
+      - django-rabbitmq
+    networks:
+      - mogi
+
+  django-rabbitmq:
+    image: rabbitmq:management
+    hostname: django-rabbitmq
+    environment:
+        - RABBITMQ_DEFAULT_USER=admin
+        - RABBITMQ_DEFAULT_PASS=mypass
+    ports:
+      - "5673:5672"  # we forward this port because it's useful for debugging
+      - "15673:15672"  # here, we can access rabbitmq management plugin
+    links:
+      - mysql-db
+    networks:
+      - mogi
+
+networks:
+    mogi:

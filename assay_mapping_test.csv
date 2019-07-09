@@ -1,0 +1,5 @@
+assay_name,dir,dir_tag,replace,save_as_link
+P_WAX_1_PHE_[LC-MS_LC-MSMS],daphnia_magna/LCMS/data/P_WAX_1_PHE/mzML,DMA,yes,yes
+P_WAX_2_PHE_[LC-MS_LC-MSMS],daphnia_magna/LCMS/data/P_WAX_2_PHE/mzML,DMA,yes,yes
+P_WAX_3_PHE_[LC-MS_LC-MSMS],daphnia_magna/LCMS/data/P_WAX_3_PHE/mzML,DMA,yes,yes
+P_WAX_4_PHE_[LC-MS_LC-MSMS],daphnia_magna/LCMS/data/P_WAX_4_PHE/mzML,DMA,yes,yes
