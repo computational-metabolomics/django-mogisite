@@ -1,7 +1,7 @@
 This django site code has been archived  
 =================================================================================================================================================================================
 
-Underlying packages restructured and django-mogi was updated specifically for DMAdb - see https://dmadb-docs.readthedocs.io/en/latest/ - as such the configuration here is no longer valid
+Underlying packages restructured and django-mogi was updated specifically for DMAdb - see https://dmadb.readthedocs.io/en/latest/ - as such the configuration here is no longer valid
 
 
 MOGI
